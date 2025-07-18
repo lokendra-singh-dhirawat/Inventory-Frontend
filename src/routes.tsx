@@ -1,10 +1,10 @@
-import App from "./App";
 import NotFound from "./misc/NotFound";
+import RootLayout from "./layout/Rootlayout";
 
 const routes = [
   {
     path: "/",
-    element: <App />,
+    element: <RootLayout />,
     errorElement: <NotFound />,
     Children: [
       {
