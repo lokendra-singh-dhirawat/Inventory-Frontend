@@ -1,12 +1,15 @@
-import { Link } from "react-router";
-
+import { SidebarTrigger } from "@/components/ui/sidebar";
 const Header = () => {
   return (
-    <div className="bg-primary sticky top-0 z-50 flex items-center justify-between p-4">
-      <h1 className="text-4xl font-bold text-white">
-        <Link to="/">Inventory Application</Link>
+    <header className="flex items-center justify-between px-4 py-2 bg-primary shadow-sm border-b ">
+      <div className="md:hidden">
+        <SidebarTrigger />
+      </div>
+      <h1 className="text-lg font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+        Inventory Application
       </h1>
-    </div>
+      <div className="space-x-4"></div>
+    </header>
   );
 };
 
