@@ -6,10 +6,20 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 
-interface AuthTokens {
+import { jwtDecode } from "jwt-decode";
+
+export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
+}
+
+export interface JwtPayload {
+  id: number;
+  email: string;
+  role: string;
+  iat: number;
+  exp: number;
 }
 
 const URL = process.env.REACT_APP_API_URL;
