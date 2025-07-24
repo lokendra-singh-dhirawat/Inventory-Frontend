@@ -19,6 +19,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/context/authContext";
 
 const appItems = [
   {
@@ -38,29 +39,13 @@ const appItems = [
   },
 ];
 
-const authItems = [
-  {
-    title: "Login",
-    url: "/login",
-    icon: LogIn,
-    requiresAuth: false,
-  },
-  {
-    title: "Logout",
-    url: "/logout",
-    icon: LogOut,
-    requiresAuth: true,
-  },
-  {
-    title: "Change Password",
-    url: "/change-password",
-    icon: Lock,
-    requiresAuth: true,
-  },
-];
-
 export function AppSidebar({ className }: { className?: string }) {
-  const isAuthenticated = false;
+  const { isAuthenticated, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <>
       <Sidebar className={`${className || ""}`}>
@@ -87,37 +72,37 @@ export function AppSidebar({ className }: { className?: string }) {
             <SidebarGroupLabel>Authentication</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {!isAuthenticated &&
-                  authItems.find((item) => item.title === "Login") && (
+                {!isAuthenticated ? ( // If NOT authenticated, show Login
+                  <SidebarMenuItem>
+                    <SidebarMenuButton asChild>
+                      {/* Directly link to login page */}
+                      <Link to="/login">
+                        <LogIn /> {/* Use the specific icon for Login */}
+                        <span>Login</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ) : (
+                  // If authenticated, show Logout and Change Password
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton onClick={handleLogout}>
+                        {" "}
+                        {/* Use onClick for Logout */}
+                        <LogOut />
+                        <span>Logout</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link
-                          to={
-                            authItems.find((item) => item.title === "Login")!
-                              .url
-                          }
-                        >
-                          <LogIn />
-                          <span>Login</span>
+                        {/* Link to Change Password page */}
+                        <Link to="/change-password">
+                          <Lock />
+                          <span>Change Password</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  )}
-
-                {isAuthenticated && (
-                  <>
-                    {authItems
-                      .filter((item) => item.requiresAuth)
-                      .map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton asChild>
-                            <Link to={item.url}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      ))}
+                    {/* Add other authenticated auth links if any, e.g., Profile Settings */}
                   </>
                 )}
               </SidebarMenu>
@@ -126,6 +111,7 @@ export function AppSidebar({ className }: { className?: string }) {
         </SidebarContent>
       </Sidebar>
 
+      {/* --- Sheet (Mobile Sidebar) - Apply same logic here --- */}
       <Sheet>
         <SheetContent side="left" className="w-64 p-0">
           <Sidebar>
@@ -159,37 +145,32 @@ export function AppSidebar({ className }: { className?: string }) {
                 <SidebarGroupLabel>Authentication</SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {!isAuthenticated &&
-                      authItems.find((item) => item.title === "Login") && (
+                    {!isAuthenticated ? ( // If NOT authenticated, show Login
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <Link to="/login">
+                            <LogIn />
+                            <span>Login</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ) : (
+                      // If authenticated, show Logout and Change Password
+                      <>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton onClick={handleLogout}>
+                            <LogOut />
+                            <span>Logout</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
                         <SidebarMenuItem>
                           <SidebarMenuButton asChild>
-                            <Link
-                              to={
-                                authItems.find(
-                                  (item) => item.title === "Login"
-                                )!.url
-                              }
-                            >
-                              <LogIn />
-                              <span>Login</span>
+                            <Link to="/change-password">
+                              <Lock />
+                              <span>Change Password</span>
                             </Link>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                      )}
-                    {isAuthenticated && (
-                      <>
-                        {authItems
-                          .filter((item) => item.requiresAuth)
-                          .map((item) => (
-                            <SidebarMenuItem key={item.title}>
-                              <SidebarMenuButton asChild>
-                                <Link to={item.url}>
-                                  <item.icon />
-                                  <span>{item.title}</span>
-                                </Link>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          ))}
                       </>
                     )}
                   </SidebarMenu>
