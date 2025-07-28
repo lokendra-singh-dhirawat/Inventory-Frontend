@@ -73,15 +73,26 @@ export function AppSidebar({ className }: { className?: string }) {
             <SidebarGroupContent>
               <SidebarMenu>
                 {!isAuthenticated ? ( // If NOT authenticated, show Login
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      {/* Directly link to login page */}
-                      <Link to="/login">
-                        <LogIn /> {/* Use the specific icon for Login */}
-                        <span>Login</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        {/* Directly link to login page */}
+                        <Link to="/login">
+                          <LogIn /> {/* Use the specific icon for Login */}
+                          <span>Login</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link to="/register">
+                          <PlusCircle />{" "}
+                          {/* Using PlusCircle for register icon example */}
+                          <span>Register</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
                 ) : (
                   // If authenticated, show Logout and Change Password
                   <>
