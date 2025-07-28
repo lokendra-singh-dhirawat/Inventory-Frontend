@@ -45,13 +45,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   useEffect(() => {
+    console.log("AUTH_DEBUG: AuthProvider useEffect triggered.");
     const accessToken = localStorage.getItem("accessToken");
+    console.log(
+      "AUTH_DEBUG: Access Token from localStorage:",
+      accessToken ? "Found" : "Not Found"
+    );
+
     if (accessToken) {
-      updateAuthUser(accessToken);
-    } else {
-      setLoading(false);
+      try {
+        console.log("AUTH_DEBUG: Attempting to decode token...");
+        updateAuthUser(accessToken);
+        console.log("AUTH_DEBUG: Token decoded and user state updated.");
+      } catch (error) {
+        console.error(
+          "AUTH_DEBUG: Error during token decode in useEffect:",
+          error
+        );
+      }
     }
+
+    console.log("AUTH_DEBUG: Setting loading to false.");
+    setLoading(false);
   }, []);
+
+  console.log(
+    "AUTH_DEBUG: AuthProvider render, current loading state:",
+    loading
+  );
 
   const login = async (
     email: string,
