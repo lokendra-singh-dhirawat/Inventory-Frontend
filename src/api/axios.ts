@@ -6,8 +6,6 @@ import type {
   InternalAxiosRequestConfig,
 } from "axios";
 
-import { jwtDecode } from "jwt-decode";
-
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
