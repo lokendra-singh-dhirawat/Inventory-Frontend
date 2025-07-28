@@ -1,8 +1,9 @@
 import NotFound from "./misc/NotFound";
 import RootLayout from "./layout/Rootlayout";
-import LoginForm from "./components/LoginForm";
+import LoginForm from "./pages/authentication/LoginForm";
 import { useAuth } from "./context/authContext";
 import { Navigate } from "react-router";
+import RegisterForm from "./pages/authentication/Register";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -13,30 +14,26 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
 };
 const routes = [
   {
+    path: "login",
+    element: <LoginForm />,
+  },
+  {
+    path: "register",
+    element: <RegisterForm />,
+  },
+
+  {
     path: "/",
     element: <RootLayout />,
-    errorElement: <NotFound />,
-    Children: [
+    children: [
       {
         index: true,
-        element: (
-          <PrivateRoute>
-            <div>
-              <h1 className="text-2xl font-bold">Welcome to Your Inventory!</h1>
-              <p>Use the sidebar to manage games.</p>
-            </div>
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: "login",
-        element: <LoginForm />,
-      },
-      {
-        path: "*",
-        element: <NotFound />,
       },
     ],
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ];
 
