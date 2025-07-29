@@ -4,7 +4,7 @@ import { useAuth } from "../../context/authContext";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation, Link } from "react-router";
 import type { AxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -14,12 +14,24 @@ const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (location.state && location.state.registered) {
+      setSuccessMessage(
+        `Registration successful for ${location.state.email}! Please log in.`
+      );
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const loginMutation = useMutation({
     mutationFn: (credentials: { email: string; password: string }) =>
       login(credentials.email, credentials.password),
     onSuccess: (data) => {
       console.log("Login successful!", data);
+      setSuccessMessage(null);
       navigate("/");
     },
     onError: (error: AxiosError<{ message?: string; errors?: any[] }>) => {
@@ -32,6 +44,7 @@ const LoginForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSuccessMessage(null);
     loginMutation.mutate({ email, password });
   };
 
@@ -39,8 +52,16 @@ const LoginForm: React.FC = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <form
         onSubmit={handleSubmit}
-        className="space-y-4 p-6 bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200"
+        className="space-y-4 p-10 bg-white rounded-lg shadow-xl w-full max-w-md border border-gray-200"
       >
+        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
+          Login
+        </h2>
+        {successMessage && (
+          <p className="text-green-600 text-sm mt-2 text-center border p-2 rounded bg-green-50">
+            {successMessage}
+          </p>
+        )}
         <div>
           <Label htmlFor="email">Email</Label>
           <Input
@@ -94,6 +115,12 @@ const LoginForm: React.FC = () => {
               "Login failed. Please try again."}
           </p>
         )}
+        <p className="text-center text-sm text-gray-600 mt-4">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Register here
+          </Link>
+        </p>
       </form>
     </div>
   );
