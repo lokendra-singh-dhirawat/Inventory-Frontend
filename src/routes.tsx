@@ -4,6 +4,7 @@ import LoginForm from "./pages/authentication/LoginForm";
 import { useAuth } from "./context/authContext";
 import { Navigate } from "react-router";
 import RegisterForm from "./pages/authentication/Register";
+import ChangePasswordForm from "./pages/authentication/ChangePassword";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -28,6 +29,14 @@ const routes = [
     children: [
       {
         index: true,
+      },
+      {
+        path: "change-password",
+        element: (
+          <PrivateRoute>
+            <ChangePasswordForm />
+          </PrivateRoute>
+        ),
       },
     ],
   },
