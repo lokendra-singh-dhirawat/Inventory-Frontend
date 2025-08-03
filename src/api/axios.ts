@@ -1,3 +1,4 @@
+import { appNavigator } from "@/utils/appNavigator";
 import axios from "axios";
 import type {
   AxiosRequestConfig,
@@ -5,6 +6,16 @@ import type {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
+
+const forceLogout = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  if (appNavigator.navigate) {
+    appNavigator.navigate("/login", { replace: true });
+  } else {
+    window.location.href = "/login";
+  }
+};
 
 export interface AuthTokens {
   accessToken: string;
@@ -81,7 +92,7 @@ apiClient.interceptors.response.use(
             processQueue(error, null);
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
-            window.location.href = "/auth/login";
+            forceLogout();
             return Promise.reject(error);
           }
           const refreshResponce: AxiosResponse<AuthTokens> =
@@ -105,7 +116,7 @@ apiClient.interceptors.response.use(
           processQueue(refreshError as AxiosError, null);
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
-          window.location.href = "/login";
+          forceLogout();
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;
