@@ -6,6 +6,7 @@ import { Navigate } from "react-router";
 import RegisterForm from "./pages/authentication/Register";
 import ChangePasswordForm from "./pages/authentication/ChangePassword";
 import CreateGameForm from "./pages/createGame/create";
+import GameList from "./pages/GetGames/getAllgames";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -30,6 +31,7 @@ const routes = [
     children: [
       {
         index: true,
+        element: <GameList />,
       },
       {
         path: "change-password",
