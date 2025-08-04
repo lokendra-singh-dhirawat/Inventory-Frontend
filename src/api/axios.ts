@@ -34,9 +34,6 @@ export interface JwtPayload {
 const URL = import.meta.env.VITE_BACKEND_URL;
 const apiClient = axios.create({
   baseURL: URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
   withCredentials: true,
 });
 
