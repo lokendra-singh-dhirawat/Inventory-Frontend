@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Check } from "lucide-react";
 import type { AxiosError } from "axios";
+import { toast } from "sonner";
 
 interface Category {
   id: number;
@@ -67,7 +68,10 @@ const CreateGameForm: React.FC = () => {
       return await apiClient.post("/game", formData);
     },
     onSuccess: () => {
-      setSuccessMessage("Game created successfully! Redirecting to home...");
+      toast.success("Game created successfully!", {
+        description: "Redirecting to home in 1.5s...",
+      });
+
       setErrorMessage(null);
       queryClient.invalidateQueries({ queryKey: ["games"] });
       setName("");
@@ -321,7 +325,7 @@ const CreateGameForm: React.FC = () => {
         <Button
           type="submit"
           disabled={createGameMutation.isPending || isLoadingCategories}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md"
+          className="w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-semibold py-2 px-4 rounded-md"
         >
           {createGameMutation.isPending ? "Creating..." : "Create Game"}
         </Button>
