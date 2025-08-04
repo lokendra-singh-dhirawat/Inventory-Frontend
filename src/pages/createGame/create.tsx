@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import apiClient from "../../api/axios";
@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Popover,
   PopoverContent,
@@ -22,7 +21,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Check } from "lucide-react";
-
 import type { AxiosError } from "axios";
 
 interface Category {
@@ -46,29 +44,29 @@ const CreateGameForm: React.FC = () => {
   const [price, setPrice] = useState<string>("");
   const [releaseDate, setReleaseDate] = useState<string>("");
   const [rating, setRating] = useState<string>("");
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]); // Array to hold selected category IDs
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const {
-    data: categories,
+    data: categories = [],
     isLoading: isLoadingCategories,
     isError: isErrorCategories,
     error: categoriesError,
   } = useQuery<Category[], Error>({
     queryKey: ["categories"],
     queryFn: fetchCategories,
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 15,
   });
 
   const createGameMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await apiClient.post("/game", formData);
-      return response.data;
+      return await apiClient.post("/game", formData);
     },
-    onSuccess: (data) => {
-      console.log("Game created successfully!", data);
+    onSuccess: () => {
       setSuccessMessage("Game created successfully! Redirecting to home...");
       setErrorMessage(null);
       queryClient.invalidateQueries({ queryKey: ["games"] });
@@ -79,19 +77,14 @@ const CreateGameForm: React.FC = () => {
       setRating("");
       setSelectedCategoryIds([]);
       setImageFile(null);
-
+      const fileInput = document.getElementById("image") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
       setTimeout(() => navigate("/"), 1500);
     },
     onError: (error: AxiosError<{ message?: string; errors?: any[] }>) => {
       const backendMessage =
         error.response?.data?.message || "An unexpected error occurred.";
       const backendErrors = error.response?.data?.errors;
-      console.error(
-        "Game creation failed:",
-        backendMessage,
-        "Errors:",
-        backendErrors
-      );
 
       let displayMessage = backendMessage;
       if (backendErrors && backendErrors.length > 0) {
@@ -110,7 +103,12 @@ const CreateGameForm: React.FC = () => {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    setImageFile(file);
+  };
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -130,12 +128,12 @@ const CreateGameForm: React.FC = () => {
       formData.append("categoryIds", id.toString());
     });
 
-    if (imageFile) {
-      formData.append("image", imageFile);
-    } else {
+    if (!imageFile || !(imageFile instanceof File)) {
       setErrorMessage("Game cover image is required.");
       return;
     }
+
+    formData.append("image", imageFile);
 
     createGameMutation.mutate(formData);
   };
@@ -151,12 +149,12 @@ const CreateGameForm: React.FC = () => {
         </h2>
 
         {successMessage && (
-          <p className="text-green-600 text-sm mt-2 text-center border p-2 rounded bg-green-50">
+          <p className="text-green-600 text-sm text-center border p-2 rounded bg-green-50">
             {successMessage}
           </p>
         )}
         {errorMessage && (
-          <p className="text-red-500 text-sm mt-2 text-center border p-2 rounded bg-red-50">
+          <p className="text-red-500 text-sm text-center border p-2 rounded bg-red-50">
             {errorMessage}
           </p>
         )}
@@ -236,6 +234,7 @@ const CreateGameForm: React.FC = () => {
             className="mt-1 block w-full"
           />
         </div>
+
         <div>
           <Label
             htmlFor="categories"
@@ -256,24 +255,20 @@ const CreateGameForm: React.FC = () => {
                   variant="outline"
                   role="combobox"
                   className={cn(
-                    "w-full justify-between mt-1",
+                    "w-full justify-between",
                     !selectedCategoryIds.length && "text-muted-foreground"
                   )}
                 >
-                  {selectedCategoryIds.length
+                  {selectedCategoryIds.length > 0
                     ? categories
-                        ?.filter((category) =>
-                          selectedCategoryIds.includes(category.id)
-                        )
-                        .map((category) => category.name)
+                        .filter((c) => selectedCategoryIds.includes(c.id))
+                        .map((c) => c.name)
                         .join(", ")
                     : "Select categories..."}
                   <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]">
-                {" "}
-                {/* Match width of trigger */}
                 <Command>
                   <CommandInput
                     placeholder="Search categories..."
@@ -281,7 +276,7 @@ const CreateGameForm: React.FC = () => {
                   />
                   <CommandEmpty>No category found.</CommandEmpty>
                   <CommandGroup>
-                    {categories?.map((category) => (
+                    {categories.map((category) => (
                       <CommandItem
                         key={category.id}
                         onSelect={() => handleCategoryToggle(category.id)}
@@ -311,29 +306,22 @@ const CreateGameForm: React.FC = () => {
             </Popover>
           )}
         </div>
-        {/* --- END Multi-Select Categories Section --- */}
 
-        {/* Image Upload */}
         <div>
-          <Label htmlFor="image" className="text-sm font-medium text-gray-700">
-            Game Cover Image
-          </Label>
+          <Label htmlFor="image">Game Cover Image</Label>
           <Input
             type="file"
             id="image"
             accept="image/*"
-            onChange={(e) =>
-              setImageFile(e.target.files ? e.target.files[0] : null)
-            }
+            onChange={handleFileChange}
             required
-            className="mt-1 block w-full"
           />
         </div>
 
         <Button
           type="submit"
           disabled={createGameMutation.isPending || isLoadingCategories}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md"
         >
           {createGameMutation.isPending ? "Creating..." : "Create Game"}
         </Button>
