@@ -7,6 +7,7 @@ import RegisterForm from "./pages/authentication/Register";
 import ChangePasswordForm from "./pages/authentication/ChangePassword";
 import CreateGameForm from "./pages/createGame/create";
 import GameList from "./pages/GetGames/getAllgames";
+import UpdateGameForm from "./pages/UpdateGame/updateGame";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -46,6 +47,14 @@ const routes = [
         element: (
           <PrivateRoute>
             <CreateGameForm />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "update-game/:id",
+        element: (
+          <PrivateRoute>
+            <UpdateGameForm />
           </PrivateRoute>
         ),
       },
