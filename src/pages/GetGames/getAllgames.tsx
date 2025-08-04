@@ -1,9 +1,12 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../../api/axios";
 import { Card, CardFooter } from "@/components/ui/card";
 import { Star, ArrowRight } from "lucide-react";
 import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/context/authContext";
+import { Link } from "react-router";
+import { toast } from "sonner";
 interface Category {
   id: number;
   name: string;
@@ -27,7 +30,19 @@ const fetchGames = async (): Promise<Game[]> => {
   return response.data.data;
 };
 
-const GameCard: React.FC<{ game: Game }> = ({ game }) => {
+const GameCard: React.FC<{ game: Game; onDelete: (id: number) => void }> = ({
+  game,
+  onDelete,
+}) => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+
+  const handleDelete = (gameId: number) => {
+    if (window.confirm("Are you sure you want to delete this game?")) {
+      onDelete(gameId);
+    }
+  };
+
   return (
     <Card className="group relative w-full overflow-hidden rounded-lg bg-white shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
       <div className="relative h-60 overflow-hidden">
@@ -38,12 +53,22 @@ const GameCard: React.FC<{ game: Game }> = ({ game }) => {
         />
 
         <div className="absolute top-2 right-2 z-20 flex gap-2 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-          <div className=" p-1 shadow">
-            <Pencil className="h-5 w-5 text-white" />
-          </div>
-          <div className=" p-1 shadow">
-            <Trash2 className="h-5 w-5 text-red-500" />
-          </div>
+          {isAdmin && (
+            <Link to={`/update-game/${game.id}`}>
+              <div className="p-1 shadow cursor-pointer">
+                <Pencil className="h-5 w-5 text-white" />
+              </div>
+            </Link>
+          )}
+          {isAdmin && (
+            <div
+              onClick={() => handleDelete(game.id)}
+              className="p-1 shadow cursor-pointer"
+              title="Delete Game"
+            >
+              <Trash2 className="h-5 w-5 text-red-500" />
+            </div>
+          )}
         </div>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-opacity-0 text-white opacity-0 transition-all duration-500 backdrop-blur-none group-hover:bg-opacity-60 group-hover:opacity-100 group-hover:backdrop-blur-md">
@@ -103,12 +128,31 @@ const GameList: React.FC = () => {
     );
   }
 
+  const queryClient = useQueryClient();
+
+  const deleteGameMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiClient.delete(`/game/${id}`);
+    },
+    onSuccess: () => {
+      toast.success("Game deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete game");
+    },
+  });
+
+  const handleDelete = (id: number) => {
+    deleteGameMutation.mutate(id);
+  };
+
   return (
     <div className="container mx-auto">
       <h1 className="text-4xl font-bold mb-8 text-gray-800">Games</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {games.map((game) => (
-          <GameCard key={game.id} game={game} />
+          <GameCard key={game.id} game={game} onDelete={handleDelete} />
         ))}
       </div>
     </div>
