@@ -8,6 +8,7 @@ import ChangePasswordForm from "./pages/authentication/ChangePassword";
 import CreateGameForm from "./pages/createGame/create";
 import GameList from "./pages/GetGames/getAllgames";
 import UpdateGameForm from "./pages/UpdateGame/updateGame";
+import SingleGamePage from "./pages/SingleGamePage/SingleGamePage";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -33,6 +34,10 @@ const routes = [
       {
         index: true,
         element: <GameList />,
+      },
+      {
+        path: "game/:id",
+        element: <SingleGamePage />,
       },
       {
         path: "change-password",

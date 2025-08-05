@@ -83,7 +83,9 @@ const GameCard: React.FC<{
               {Number(game.rating).toFixed(1)}
             </span>
           </div>
-          <ArrowRight className="h-8 w-8 transition-transform duration-300 group-hover:translate-x-1" />
+          <Link to={`/game/${game.id}`}>
+            <ArrowRight className="h-8 w-8 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
         </div>
       </div>
 
