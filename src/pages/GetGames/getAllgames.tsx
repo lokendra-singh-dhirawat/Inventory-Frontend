@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../../api/axios";
 import { Card, CardFooter } from "@/components/ui/card";
@@ -7,6 +7,16 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 interface Category {
   id: number;
   name: string;
@@ -30,18 +40,12 @@ const fetchGames = async (): Promise<Game[]> => {
   return response.data.data;
 };
 
-const GameCard: React.FC<{ game: Game; onDelete: (id: number) => void }> = ({
-  game,
-  onDelete,
-}) => {
+const GameCard: React.FC<{
+  game: Game;
+  onDeleteClick: (id: number) => void;
+}> = ({ game, onDeleteClick }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-
-  const handleDelete = (gameId: number) => {
-    if (window.confirm("Are you sure you want to delete this game?")) {
-      onDelete(gameId);
-    }
-  };
 
   return (
     <Card className="group relative w-full overflow-hidden rounded-lg bg-white shadow-lg transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
@@ -62,7 +66,7 @@ const GameCard: React.FC<{ game: Game; onDelete: (id: number) => void }> = ({
           )}
           {isAdmin && (
             <div
-              onClick={() => handleDelete(game.id)}
+              onClick={() => onDeleteClick(game.id)}
               className="p-1 shadow cursor-pointer"
               title="Delete Game"
             >
@@ -102,6 +106,9 @@ const GameCard: React.FC<{ game: Game; onDelete: (id: number) => void }> = ({
 };
 
 const GameList: React.FC = () => {
+  const queryClient = useQueryClient();
+  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const {
     data: games = [],
     isLoading,
@@ -125,6 +132,18 @@ const GameList: React.FC = () => {
     },
   });
 
+  const handleDeleteClick = (id: number) => {
+    setSelectedGameId(id);
+    setDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedGameId !== null) {
+      deleteGameMutation.mutate(selectedGameId);
+    }
+    setDialogOpen(false);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -141,20 +160,36 @@ const GameList: React.FC = () => {
     );
   }
 
-  const queryClient = useQueryClient();
-
-  const handleDelete = (id: number) => {
-    deleteGameMutation.mutate(id);
-  };
-
   return (
     <div className="container mx-auto">
       <h1 className="text-4xl font-bold mb-8 text-gray-800">Games</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {games.map((game) => (
-          <GameCard key={game.id} game={game} onDelete={handleDelete} />
+          <GameCard
+            key={game.id}
+            game={game}
+            onDeleteClick={handleDeleteClick}
+          />
         ))}
       </div>
+      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Are you sure you want to delete?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the game and its image.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
