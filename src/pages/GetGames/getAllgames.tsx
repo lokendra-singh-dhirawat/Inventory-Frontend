@@ -112,6 +112,19 @@ const GameList: React.FC = () => {
     queryFn: fetchGames,
   });
 
+  const deleteGameMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiClient.delete(`/game/${id}`);
+    },
+    onSuccess: () => {
+      toast.success("Game deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["games"] });
+    },
+    onError: () => {
+      toast.error("Failed to delete game");
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
@@ -129,19 +142,6 @@ const GameList: React.FC = () => {
   }
 
   const queryClient = useQueryClient();
-
-  const deleteGameMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await apiClient.delete(`/game/${id}`);
-    },
-    onSuccess: () => {
-      toast.success("Game deleted successfully");
-      queryClient.invalidateQueries({ queryKey: ["games"] });
-    },
-    onError: () => {
-      toast.error("Failed to delete game");
-    },
-  });
 
   const handleDelete = (id: number) => {
     deleteGameMutation.mutate(id);
