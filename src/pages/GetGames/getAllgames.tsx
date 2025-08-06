@@ -7,6 +7,8 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/authContext";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { GameSearchBar } from "./GameSearchBar";
+import { GameCategoryFilter } from "./GameCategoryFilter";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,6 +113,9 @@ const GameList: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
   const {
     data: games = [],
     isLoading,
@@ -119,6 +124,28 @@ const GameList: React.FC = () => {
   } = useQuery<Game[], Error>({
     queryKey: ["games"],
     queryFn: fetchGames,
+  });
+
+  const uniqueCategories = Array.from(
+    new Set(games.flatMap((g) => g.categories.map((c) => c.name)))
+  );
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const filteredGames = games.filter((game) => {
+    const matchesSearch = game.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      game.categories.some((c) => selectedCategories.includes(c.name));
+    return matchesSearch && matchesCategory;
   });
 
   const deleteGameMutation = useMutation({
@@ -165,8 +192,15 @@ const GameList: React.FC = () => {
   return (
     <div className="container mx-auto">
       <h1 className="text-4xl font-bold mb-8 text-gray-800">Games</h1>
+
+      <GameSearchBar value={searchQuery} onChange={setSearchQuery} />
+      <GameCategoryFilter
+        categories={uniqueCategories}
+        selected={selectedCategories}
+        onToggle={toggleCategory}
+      />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {games.map((game) => (
+        {filteredGames.map((game) => (
           <GameCard
             key={game.id}
             game={game}
