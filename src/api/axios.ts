@@ -34,7 +34,7 @@ export interface JwtPayload {
 const URL = import.meta.env.VITE_BACKEND_URL;
 const apiClient = axios.create({
   baseURL: URL,
-  withCredentials: true,
+  withCredentials: false,
 });
 
 let isRefreshing = false;
@@ -68,35 +68,43 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-  (responce: AxiosResponse) => {
-    return responce;
-  },
+  (response: AxiosResponse) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as
+      | (InternalAxiosRequestConfig & { _retry?: boolean })
+      | undefined;
+    if (!originalRequest) return Promise.reject(error);
+
+    // normalize to pathname so comparisons work even if url is absolute
+    let path = originalRequest.url ?? "";
+    try {
+      path = new URL(originalRequest.url ?? "", URL).pathname;
+    } catch {}
+
     if (
       error.response?.status === 401 &&
-      originalRequest &&
-      !(originalRequest as any)._retry &&
-      originalRequest.url !== "/auth/login" &&
-      originalRequest.url !== "/auth/refresh-token"
+      !originalRequest._retry &&
+      path !== "/auth/login" &&
+      path !== "/auth/refresh-token"
     ) {
-      (originalRequest as any)._retry = true;
+      originalRequest._retry = true;
+
       if (!isRefreshing) {
         isRefreshing = true;
         try {
           const refreshToken = localStorage.getItem("refreshToken");
           if (!refreshToken) {
             processQueue(error, null);
-            localStorage.removeItem("accessToken");
-            localStorage.removeItem("refreshToken");
             forceLogout();
             return Promise.reject(error);
           }
-          const refreshResponce: AxiosResponse<AuthTokens> =
-            await apiClient.post(`${URL}/auth/refresh-token`, { refreshToken });
-          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
-            refreshResponce.data;
 
+          // use relative path here
+          const refreshResponse: AxiosResponse<AuthTokens> =
+            await apiClient.post("/auth/refresh-token", { refreshToken });
+
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+            refreshResponse.data;
           localStorage.setItem("accessToken", newAccessToken);
           localStorage.setItem("refreshToken", newRefreshToken);
 
@@ -105,34 +113,25 @@ apiClient.interceptors.response.use(
           }
           processQueue(null, newAccessToken);
           return apiClient(originalRequest);
-        } catch (refreshError: any) {
-          console.error(
-            "Refresh token failed:",
-            refreshError.response?.data || refreshError.message
-          );
-          processQueue(refreshError as AxiosError, null);
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
+        } catch (refreshErr: any) {
+          processQueue(refreshErr as AxiosError, null);
           forceLogout();
-          return Promise.reject(refreshError);
+          return Promise.reject(refreshErr);
         } finally {
           isRefreshing = false;
         }
       } else {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+        }).then((token) => {
+          if (originalRequest.headers && token) {
+            originalRequest.headers.Authorization = `Bearer ${token as string}`;
+          }
+          return apiClient(originalRequest);
+        });
       }
     }
+
     return Promise.reject(error);
   }
 );
