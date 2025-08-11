@@ -29,8 +29,7 @@ const LoginForm: React.FC = () => {
   const loginMutation = useMutation({
     mutationFn: (credentials: { email: string; password: string }) =>
       login(credentials.email, credentials.password),
-    onSuccess: (data) => {
-      console.log("Login successful!", data);
+    onSuccess: () => {
       setSuccessMessage(null);
       navigate("/");
     },
