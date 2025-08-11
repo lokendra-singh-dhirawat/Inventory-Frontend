@@ -1,47 +1,51 @@
-import NotFound from "./misc/NotFound";
-import RootLayout from "./layout/Rootlayout";
-import LoginForm from "./pages/authentication/LoginForm";
-import { useAuth } from "./context/authContext";
+import { lazy, Suspense, type JSX } from "react";
 import { Navigate } from "react-router";
-import RegisterForm from "./pages/authentication/Register";
-import ChangePasswordForm from "./pages/authentication/ChangePassword";
-import CreateGameForm from "./pages/createGame/create";
-import GameList from "./pages/GetGames/getAllgames";
-import UpdateGameForm from "./pages/UpdateGame/updateGame";
-import SingleGamePage from "./pages/SingleGamePage/SingleGamePage";
+import { useAuth } from "./context/authContext";
+
+const RootLayout = lazy(() => import("./layout/Rootlayout"));
+const LoginForm = lazy(() => import("./pages/authentication/LoginForm"));
+const RegisterForm = lazy(() => import("./pages/authentication/Register"));
+const ChangePasswordForm = lazy(
+  () => import("./pages/authentication/ChangePassword")
+);
+const CreateGameForm = lazy(() => import("./pages/createGame/create"));
+const GameList = lazy(() => import("./pages/GetGames/getAllgames"));
+const UpdateGameForm = lazy(() => import("./pages/UpdateGame/updateGame"));
+const SingleGamePage = lazy(
+  () => import("./pages/SingleGamePage/SingleGamePage")
+);
+const NotFound = lazy(() => import("./misc/NotFound"));
+
+const S = (el: JSX.Element) => (
+  <Suspense fallback={<div style={{ padding: 16 }}>Loading…</div>}>
+    {el}
+  </Suspense>
+);
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) {
-    return <div>Loading authentication...</div>;
-  }
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  if (loading) return <div>Loading authentication...</div>;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
+
 const routes = [
   {
     path: "login",
-    element: <LoginForm />,
+    element: S(<LoginForm />),
   },
   {
     path: "register",
-    element: <RegisterForm />,
+    element: S(<RegisterForm />),
   },
-
   {
     path: "/",
-    element: <RootLayout />,
+    element: S(<RootLayout />),
     children: [
-      {
-        index: true,
-        element: <GameList />,
-      },
-      {
-        path: "game/:id",
-        element: <SingleGamePage />,
-      },
+      { index: true, element: S(<GameList />) },
+      { path: "game/:id", element: S(<SingleGamePage />) },
       {
         path: "change-password",
-        element: (
+        element: S(
           <PrivateRoute>
             <ChangePasswordForm />
           </PrivateRoute>
@@ -49,7 +53,7 @@ const routes = [
       },
       {
         path: "create-game",
-        element: (
+        element: S(
           <PrivateRoute>
             <CreateGameForm />
           </PrivateRoute>
@@ -57,7 +61,7 @@ const routes = [
       },
       {
         path: "update-game/:id",
-        element: (
+        element: S(
           <PrivateRoute>
             <UpdateGameForm />
           </PrivateRoute>
@@ -65,10 +69,7 @@ const routes = [
       },
     ],
   },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
+  { path: "*", element: S(<NotFound />) },
 ];
 
 export default routes;
