@@ -1,69 +1,36 @@
-# React + TypeScript + Vite
+About The Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+This project is the frontend for the Inventory Management Application, providing a modern, responsive, and interactive user interface to interact with the backend API. It's built with React and a focus on efficient data fetching, robust form handling, and a clean design system.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Features
 
-## Expanding the ESLint configuration
+- User Authentication:
+	- User Registration.
+	- Secure User Login with Access & Refresh Token management.
+	- Automatic token refresh for seamless sessions.
+	- User Logout.
+	- Password Change functionality for authenticated users.
+	- Protected routes for authenticated and authorized content.
+- Game Inventory Management:
+	- Form to create new game entries, including details (name, description, price, etc.) and cover image upload.
+	- Multi-select functionality for assigning game categories.
+	- Have filters to search game by searching name or by selecting categories.
+  - only admin have authority to delete and update the game.
+  - users can check out the single page of the game.
+- Responsive UI: Built with Tailwind CSS for a mobile-first, responsive design.
+- Reusable Components: Utilizes Shadcn/UI for accessible and customizable UI components.
+- Efficient Data Fetching: Manages API requests, caching, and data synchronization using Tanstack React Query.
+- Hash-Based Routing: Uses react-router's createHashRouter for client-side routing, suitable for static site deployments.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Technologies Used
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Framework: React
+- Build Tool: Vite
+- Language: TypeScript
+- UI Components: Shadcn/UI
+- Styling: Tailwind CSS
+- State Management/Data Fetching: Tanstack React Query
+- HTTP Client: Axios
+- Routing: react-router (via react-router-dom)
+- JWT Decoding: jwt-decode
