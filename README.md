@@ -1,3 +1,6 @@
+Live Demo <https://inventory-frontend-yjxe.vercel.app/>
+- 
+
 About The Project
 
 
